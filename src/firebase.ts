@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getStorage, ref, listAll, getDownloadURL, StorageReference } from "firebase/storage";
+import { getStorage, ref, listAll, getDownloadURL, type StorageReference } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 
 // Your web app's Firebase configuration
@@ -18,21 +18,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig); 
 
-// Initialize Analytics only if supported (on the client side)
-let analytics: any; // Use 'any' or a more specific type if you have it
-if (typeof window !== 'undefined') {
-  import("firebase/analytics")
-    .then(async ({ getAnalytics, isSupported }) => {
-      const supported = await isSupported();
-      if (supported) {
-        analytics = getAnalytics(app);
-      }
-    })
-    .catch((error) => {
-      console.error("Error loading Firebase Analytics:", error);
-    });
-}
-const storage = getStorage(app); // Ensure storage is initialized outside the if block
+const storage = getStorage(app);
 
 export { storage, ref, listAll, getDownloadURL };
 export type { StorageReference };
