@@ -1,22 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import dynamic from 'next/dynamic';
+import { useState } from "react";
+import ReactAudioPlayer from 'react-audio-player';
 import { storage, ref, listAll, getDownloadURL, type StorageReference } from "../firebase";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false }) as any;
 
 interface Song {
   title: string;
   url: string;
-}
-
-interface ProgressState {
-  played: number;
-  playedSeconds: number;
-  loaded: number;
-  loadedSeconds: number;
 }
 
 export default function Home() {
@@ -24,27 +14,8 @@ export default function Home() {
   const [sections, setSections] = useState<string[]>([]);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [playlist, setPlaylist] = useState<Song[]>([]);
-  const [progress, setProgress] = useState<ProgressState>({
-    played: 0,
-    playedSeconds: 0,
-    loaded: 0,
-    loadedSeconds: 0,
-  });
-  const playerRef = useRef(null);
-
-  useEffect(() => {
-    if (currentSong && progress.played === 1) {
-      const currentIndex = playlist.findIndex((song) => song.url === currentSong.url);
-      if (currentIndex !== -1 && currentIndex < playlist.length - 1) {
-        handlePlaySong(playlist[currentIndex + 1]);
-      } else {
-        setPlaying(false);
-      }
-    }
-  }, [progress, currentSong, playlist]);
+  const [currentSongUrl, setCurrentSongUrl] = useState<string>('');
+  const [currentSongTitle, setCurrentSongTitle] = useState<string>('No song selected');
 
   const fetchSections = async () => {
     try {
@@ -78,53 +49,13 @@ export default function Home() {
   };
 
   const handlePlaySong = (song: Song) => {
-    // FINAL FIX: Only load the song, do not automatically play.
-    setCurrentSong(song);
-    setPlaying(false); // Ensure player is paused until user explicitly plays
-  };
-
-  const handlePlayPause = () => {
-    // This is now the only button that starts/stops playback.
-    if (!currentSong && playlist.length > 0) {
-      setCurrentSong(playlist[0]);
-    }
-    setPlaying(!playing);
-  };
-
-  const handleAddToPlaylist = (song: Song) => {
-    if (!playlist.find(p => p.url === song.url)) {
-      setPlaylist((prevPlaylist) => [...prevPlaylist, song]);
-    }
-  };
-
-  const handleRemoveFromPlaylist = (songToRemove: Song) => {
-    setPlaylist((prevPlaylist) =>
-      prevPlaylist.filter((song) => song.url !== songToRemove.url)
-    );
-  };
-
-  const handleProgress = (state: ProgressState) => {
-    setProgress(state);
+    console.log(`Playing song: ${song.title}`);
+    setCurrentSongUrl(song.url);
+    setCurrentSongTitle(song.title);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4 pb-24">
-      <div className="w-full max-w-4xl mx-auto">
-        {/* Make player visible for debugging */}
-        <ReactPlayer
-            ref={playerRef}
-            url={currentSong?.url}
-            playing={playing}
-            onProgress={handleProgress}
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            onError={(e: Error) => console.error("ReactPlayer Error:", e)}
-            controls={true} // Show native controls for debugging
-            width="100%"
-            height="50px"
-            style={{ marginBottom: '20px' }}
-        />
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
       
       {!agreed ? (
         <div className="text-center">
@@ -148,9 +79,31 @@ export default function Home() {
         </div>
       ) : (
         <div className="w-full max-w-4xl">
-          <header className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Faithful Frequencies Music</h2>
+          <header className="flex justify-between items-center mb-6 sticky top-0 bg-gray-900 py-4 z-10">
+            <div className="w-full">
+              <p className="mb-2 text-center">Now Playing: {currentSongTitle}</p>
+              <ReactAudioPlayer
+                src={currentSongUrl}
+                autoPlay
+                controls
+                className="w-full"
+              />
+            </div>
           </header>
+
+          <div className="text-center mb-6">
+            <p className="text-xl font-semibold mb-4">Support Our Music!</p>
+            <form action="https://www.paypal.com/donate" method="post" target="_top">
+              <input type="hidden" name="hosted_button_id" value="L37B4K7P5U3NL" />
+              <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+              <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+            </form>
+            <p className="mt-2 text-sm text-gray-400">
+              Your generous contributions help us create more music and keep this platform free.
+            </p>
+          </div>
+
+
 
           <main className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
@@ -172,48 +125,16 @@ export default function Home() {
                     <li key={song.url} className="flex justify-between items-center bg-gray-800 p-2 rounded">
                       <span>{song.title}</span>
                       <div>
-                        <button onClick={() => handlePlaySong(song)} className="bg-green-500 text-white px-3 py-1 rounded mr-2">Load</button>
-                        <button onClick={() => handleAddToPlaylist(song)} className="bg-blue-500 text-white px-3 py-1 rounded">Add to Playlist</button>
+                        <button onClick={() => handlePlaySong(song)} className="bg-green-500 text-white px-3 py-1 rounded mr-2">Play</button>
                       </div>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Playlist</h3>
-              <ul className="space-y-2">
-                 {playlist.length === 0 ? (
-                    <p className="text-gray-400">Your playlist is empty.</p>
-                    ) : (
-                    playlist.map((song, index) => (
-                    <li key={song.url} className="flex justify-between items-center bg-gray-800 p-2 rounded">
-                        <span>{index + 1}. {song.title}</span>
-                        <div>
-                        <button onClick={() => handlePlaySong(song)} className="bg-green-500 text-white px-3 py-1 rounded mr-2">Load</button>
-                        <button onClick={() => handleRemoveFromPlaylist(song)} className="bg-red-500 text-white px-3 py-1 rounded">Remove</button>
-                        </div>
-                    </li>
-                    ))
-                )}
-              </ul>
-            </div>
+            {/* Simplified layout, removing playlist for now */}
+            <div/>
           </main>
-          
-          <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 p-4 text-center">
-            <div className="w-full max-w-4xl mx-auto">
-                <p className="mb-2">{currentSong ? `Now Playing: ${currentSong.title}` : "No song selected"}</p>
-                <div className="flex items-center justify-center space-x-4">
-                    <button onClick={handlePlayPause} className="bg-green-600 text-white px-4 py-2 rounded">
-                        {playing ? "Pause" : "Play"}
-                    </button>
-                    <div className="w-full bg-gray-700 rounded-full h-2.5">
-                        <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${progress.played * 100}%` }}></div>
-                    </div>
-                </div>
-            </div>
-          </footer>
         </div>
       )}
     </div>
