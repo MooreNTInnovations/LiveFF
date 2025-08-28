@@ -1,5 +1,1 @@
-{
-  "projects": {
-    "default": "faithflow-15535"
-  }
-}
+{ "projects": { "default": "faithflow-15535" }, "targets": { "faithflow-15535": { "hosting": { "faithflow-hosting": [ "faithflow-15535" ] } } } }
