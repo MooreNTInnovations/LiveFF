@@ -82,22 +82,27 @@ export default function Home() {
           <header className="flex justify-between items-center mb-6 sticky top-0 bg-gray-900 py-4 z-10">
             <div className="w-full">
               <p className="mb-2 text-center">Now Playing: {currentSongTitle}</p>
+              {currentSongUrl && (
               <ReactAudioPlayer
                 src={currentSongUrl}
                 autoPlay
                 controls
                 className="w-full"
               />
+              )}
             </div>
           </header>
 
           <div className="text-center mb-6">
             <p className="text-xl font-semibold mb-4">Support Our Music!</p>
-            <form action="https://www.paypal.com/donate" method="post" target="_top">
-              <input type="hidden" name="hosted_button_id" value="L37B4K7P5U3NL" />
-              <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
-              <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
-            </form>
+            <a
+              href="https://square.link/u/kvmzA5fu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
+            >
+              Donate with Square
+            </a>
             <p className="mt-2 text-sm text-gray-400">
               Your generous contributions help us create more music and keep this platform free.
             </p>
