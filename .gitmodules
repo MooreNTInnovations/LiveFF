@@ -1,0 +1,4 @@
+ini
+[submodule "FaithFlow"]
+	path = FaithFlow
+	url = https://github.com/MooreNTInnovations/LiveFF.git
